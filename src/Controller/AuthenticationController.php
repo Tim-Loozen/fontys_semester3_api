@@ -65,4 +65,22 @@ class AuthenticationController extends AbstractController
             "User is not logged in"
         ]);
     }
+    #[Route('/verifyToken', name: 'app_verifyToken')]
+    public function verifyToken(Request $request, JWTTokenService $JWTTokenService, UserRepository $userRepository): JsonResponse
+    {
+        $data = json_decode($request->getContent());
+        $user = $userRepository->findOneBy(["email" => $data->email]);
+        $valid = $JWTTokenService->decodeToken($data->token ,$user );
+        if($valid)
+        {
+            return $this->json([
+               "Logged in "
+            ]);
+        }
+
+        return $this->json([
+            "logged in not"
+
+        ],400);
+    }
 }
