@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use mysql_xdevapi\Exception;
 
 class JWTTokenService
 {
@@ -15,6 +16,16 @@ class JWTTokenService
  }
  public function decodeToken(string $token, User $user)
  {
-     return JWT::decode($token, New Key($user->getApiToken(), 'HS256' ));
+     try {
+         $decodedToken = JWT::decode($token, new Key($user->getApiToken(), 'HS256'));
+     }
+     catch(\Exception $e){
+         return null;
+     }
+ }
+
+ public function decodePublic(string $token)
+ {
+     return json_decode(base64_decode(str_replace('', '/', str_replace('-','+',explode('.', $token)[1]))));
  }
 }
