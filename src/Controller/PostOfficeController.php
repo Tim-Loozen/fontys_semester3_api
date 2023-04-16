@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\PostOffice;
+use App\Repository\PostOfficeRepository;
 use App\Service\ResponseService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,34 +13,58 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PostOfficeController extends AbstractController
 {
-    #[Route('/post_office', name: 'app_post_office')]
-    public function index(): JsonResponse
-    {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/PostOfficeController.php',
-        ]);
-    }
-    #[Route('/create_post_office', name: 'post_office')]
-    public function post(Request $request): JsonResponse
+    #[Route('/post_office', name: 'app_post_office',methods: ['GET'] )]
+    public function index(PostOfficeRepository $postOfficeRepository): JsonResponse
     {
 
-        $data = json_decode($request->getContent(), true, 512);
+        $postoffices = $postOfficeRepository->findAll();
 
-        if (empty($data)) {
-            return ResponseService::build(null, 400, 'No data provided', 'no_data_provided');
+        foreach($postoffices as  $postOffice)
+        {
+            $data[] = [
+                'id' => $postOffice->getId(),
+                'name' => $postOffice->getName(),
+                'kvk' => $postOffice->getKvk(),
+            ];
+
         }
 
+        return $this->json([
+            $data
+        ]);
 
-        $user = new User();
-        $user->getRoute($route);
+    }
+    #[Route('/create_post_office', name: 'post_office')]
+    public function createPostOffice(Request $request, PostOfficeRepository $postOfficeRepository): JsonResponse
+    {
+        $data = json_decode($request->getContent());
+        $postOffice = new PostOffice();
+        $valid = true;
 
+        if($data != null) {
 
+            if ($data->postOfficeName === null) {
+                $valid = false;
+            }
 
+            if ($data->postOfficeKVK === null) {
+                $valid = false;
+            }
 
+            if($valid) {
 
-        return ResponseService::build($data, 200, '', '');
+                $postOffice->setName($data->postOfficeName);
+                $postOffice->setKvk(intval($data->postOfficeKVK));
 
+                $postOfficeRepository->save($postOffice, true);
+
+                return $this->json([
+                    "Postoffice has been made"
+                ]);
+            }
+        }
+        return $this->json([
+        ]);
     }
 
 

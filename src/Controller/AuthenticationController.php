@@ -4,9 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Security\ApiKeyAuthenticator;
 use App\Service\JWTTokenService;
-use App\Service\ResponseService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +17,6 @@ class AuthenticationController extends AbstractController
     #[Route('/register', name: 'app_registration')]
     public function register(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $userPasswordHasher): JsonResponse
     {
-
         $data = json_decode($request->getContent());
         $user = new User();
 
@@ -48,39 +45,52 @@ class AuthenticationController extends AbstractController
     public function login(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $userPasswordHasher, JWTTokenService $JWTTokenService): JsonResponse
     {
         $data = json_decode($request->getContent());
-        $user = $userRepository->findOneBy(["email" => $data->email]);
+        if ($data != null) {
 
-        if($user != null)
-        {
-             if($userPasswordHasher->isPasswordValid($user, $data->password))
-             {
-                 return $this->json([
-                    $JWTTokenService->createToken($user)
-                 ]);
-             }
+            $user = $userRepository->findOneBy(["email" => $data->email]);
 
+            if ($user != null) {
+                if ($userPasswordHasher->isPasswordValid($user, $data->password)) {
+                    return $this->json([
+                        $JWTTokenService->createToken($user),
+                         "User is logged in",
+                    ]);
+                }
+
+            }
+            return $this->json([
+                "User is not logged in"
+            ]);
+
+        } else {
+            return $this->json([
+            "No data retrieved"
+            ]);
         }
 
-        return $this->json([
-            "User is not logged in"
-        ]);
+
     }
+
     #[Route('/verifyToken', name: 'app_verifyToken')]
     public function verifyToken(Request $request, JWTTokenService $JWTTokenService, UserRepository $userRepository): JsonResponse
     {
         $data = json_decode($request->getContent());
-        $user = $userRepository->findOneBy(["email" => $data->email]);
-        $valid = $JWTTokenService->decodeToken($data->token ,$user );
-        if($valid)
-        {
+        if($data != null) {
+            $user = $userRepository->findOneBy(["email" => $data->email]);
+            $valid = $JWTTokenService->decodeToken($data->token, $user);
+            if ($valid) {
+                return $this->json([
+                    "Logged in "
+                ]);
+            }
+        }else{
             return $this->json([
-               "Logged in "
             ]);
         }
 
         return $this->json([
             "logged in not"
 
-        ],400);
+        ], 400);
     }
 }
