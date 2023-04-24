@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\PostOfficeUserRepository;
 use App\Repository\UserRepository;
 use App\Service\JWTTokenService;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,72 +21,85 @@ class AuthenticationController extends AbstractController
         $data = json_decode($request->getContent());
         $user = new User();
 
-        if ($data->firstname != null) {
-            $user->setFirstname($data->firstname);
-        }
-        if ($data->lastname != null) {
-            $user->setLastname($data->lastname);
-        }
-        if ($data->email != null) {
-            $user->setEmail($data->email);
-        }
-        if ($data->password != null) {
-            $user->setPassword($userPasswordHasher->hashPassword($user, $data->password));
-        }
+        if ($data) {
+            if ($data->firstname != null) {
+                $user->setFirstname($data->firstname);
+            }
+            if ($data->lastname != null) {
+                $user->setLastname($data->lastname);
+            }
+            if ($data->email != null) {
+                $user->setEmail($data->email);
+            }
+            if ($data->password != null) {
+                $user->setPassword($userPasswordHasher->hashPassword($user, $data->password));
+            }
 
-        $userRepository->save($user, true);
+            $user->setIsAdmin(false);
+            $userRepository->save($user, true);
+
+            return $this->json([
+                "OK user has been made"
+            ]);
+        }
 
         return $this->json([
-            "OK user has been made"
+            "No data provided"
         ]);
 
     }
 
     #[Route('/login', name: 'app_login')]
-    public function login(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $userPasswordHasher, JWTTokenService $JWTTokenService): JsonResponse
+    public function login(Request $request, UserRepository $userRepository, PostOfficeUserRepository $postOfficeUserRepository, UserPasswordHasherInterface $userPasswordHasher, JWTTokenService $JWTTokenService): JsonResponse
     {
         $data = json_decode($request->getContent());
         if ($data != null) {
 
             $user = $userRepository->findOneBy(["email" => $data->email]);
+            $postofficeUser = $postOfficeUserRepository->findOneBy(["email" => $data->email]);
 
-            if ($user != null) {
-                if ($userPasswordHasher->isPasswordValid($user, $data->password)) {
+
+            if ($user != null || $postofficeUser != null) {
+                if ($userPasswordHasher->isPasswordValid($user, $data->password) && $user->isIsAdmin()) {
                     return $this->json([
                         $JWTTokenService->createToken($user),
-                         "User is logged in",
+                        "Admin has logged in",]);
+                }
+
+                if ($userPasswordHasher->isPasswordValid($user, $data->password) && !$user->isIsAdmin()) {
+                    return $this->json([
+                        $JWTTokenService->createToken($user),
+                        "User has logged in",
                     ]);
                 }
 
+                if ($userPasswordHasher->isPasswordValid($postofficeUser, $data->password)) {
+                    return $this->json([
+                        $JWTTokenService->createToken($user),
+                        "Post user is logged in",
+                    ]);
+
+                }
             }
-            return $this->json([
-                "User is not logged in"
-            ]);
-
-        } else {
-            return $this->json([
-            "No data retrieved"
-            ]);
         }
-
-
+        return $this->json([
+            "No data retrieved"
+        ]);
     }
 
-    #[Route('/verifyToken', name: 'app_verifyToken')]
+    #[
+        Route('/verifyToken', name: 'app_verifyToken')]
     public function verifyToken(Request $request, JWTTokenService $JWTTokenService, UserRepository $userRepository): JsonResponse
     {
         $data = json_decode($request->getContent());
-        if($data != null) {
+        if ($data != null) {
             $user = $userRepository->findOneBy(["email" => $data->email]);
-            $valid = $JWTTokenService->decodeToken($data->token, $user);
-            if ($valid) {
+
+            if ($JWTTokenService->decodeToken($data->token, $user)) {
                 return $this->json([
                     "Logged in "
                 ]);
             }
-        }else{
-            return $this->json([
-            ]);
         }
 
         return $this->json([

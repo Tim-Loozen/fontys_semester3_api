@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PostOfficeController extends AbstractController
@@ -90,7 +91,7 @@ class PostOfficeController extends AbstractController
     }
 
     #[Route('/create_post_office_account', name: 'post_office_account_create')]
-    public function createPostOfficeAccount(Request $request, PostOfficeUserRepository $postOfficeUserRepository): JsonResponse
+    public function createPostOfficeAccount(Request $request, PostOfficeUserRepository $postOfficeUserRepository,  UserPasswordHasherInterface $userPasswordHasher ): JsonResponse
     {
         $data = json_decode($request->getContent());
         $postOfficeUser = new PostOfficeUser();
@@ -125,7 +126,7 @@ class PostOfficeController extends AbstractController
                 $postOfficeUser->setFirstname($data->firstname);
                 $postOfficeUser->setLastname($data->lastname);
                 $postOfficeUser->setEmail($data->email);
-                $postOfficeUser->setPassword($data->password);
+                $postOfficeUser->setPassword($userPasswordHasher->hashPassword($postOfficeUser, $data->password));
                 $postOfficeUser->setPhoneNumber($data->cellphone);
                 $postOfficeUser->setPosition($data->position);
                 $postOfficeUser->setRole("default");

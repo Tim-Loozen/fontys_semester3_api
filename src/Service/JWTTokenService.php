@@ -17,10 +17,29 @@ class JWTTokenService
         $this->userRepository = $userRepository;
     }
 
+    public function createApiToken()
+    {
+
+        $length = 10;
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $apiToken = '';
+        for ($i = 0; $i < $length; $i++) {
+            $apiToken .= $characters[random_int(0, $charactersLength - 1)];
+        }
+        return $apiToken;
+    }
+
     public function createToken(User $user)
     {
-        return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
-
+        if ($user->getApiToken() != null) {
+            return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
+        } else {
+           $apiToken = $this->createApiToken();
+           $user->setApiToken($apiToken);
+           $this->userRepository->save($user);
+           return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
+        }
     }
 
     public function decodeToken(string $token, User $user)

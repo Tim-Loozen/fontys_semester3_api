@@ -6,7 +6,7 @@ use App\Repository\PostOfficeUserRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostOfficeUserRepository::class)]
-class PostOfficeUser
+class PostOfficeUser implements \Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -33,6 +33,9 @@ class PostOfficeUser
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $role = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $api_token = null;
 
     public function getId(): ?int
     {
@@ -119,6 +122,18 @@ class PostOfficeUser
     public function setRole(?string $role): self
     {
         $this->role = $role;
+
+        return $this;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->api_token;
+    }
+
+    public function setApiToken(?string $api_token): self
+    {
+        $this->api_token = $api_token;
 
         return $this;
     }
