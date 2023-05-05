@@ -56,10 +56,8 @@ class AuthenticationController extends AbstractController
         if ($data != null) {
 
             $user = $userRepository->findOneBy(["email" => $data->email]);
-            $postofficeUser = $postOfficeUserRepository->findOneBy(["email" => $data->email]);
 
-
-            if ($user != null || $postofficeUser != null) {
+            if ($user != null) {
                 if ($userPasswordHasher->isPasswordValid($user, $data->password) && $user->isIsAdmin()) {
                     return $this->json([
                         $JWTTokenService->createToken($user),
@@ -73,7 +71,7 @@ class AuthenticationController extends AbstractController
                     ]);
                 }
 
-                if ($userPasswordHasher->isPasswordValid($postofficeUser, $data->password)) {
+                if ($userPasswordHasher->isPasswordValid($user, $data->password) && $user->getPostOffice() != null) {
                     return $this->json([
                         $JWTTokenService->createToken($user),
                         "Post user is logged in",
@@ -83,15 +81,14 @@ class AuthenticationController extends AbstractController
             }
         }
         return $this->json([
-            "No data retrieved"
-        ]);
+        ], 400);
     }
 
-    #[
-        Route('/verifyToken', name: 'app_verifyToken')]
+    #[Route('/verifyToken', name: 'app_verifyToken')]
     public function verifyToken(Request $request, JWTTokenService $JWTTokenService, UserRepository $userRepository): JsonResponse
     {
         $data = json_decode($request->getContent());
+
         if ($data != null) {
             $user = $userRepository->findOneBy(["email" => $data->email]);
 
@@ -99,11 +96,14 @@ class AuthenticationController extends AbstractController
                 return $this->json([
                     "Logged in "
                 ]);
+            }else{
+                return $this->json([
+                    "Could not decodeToken"
+                ], 400);
             }
         }
-
         return $this->json([
-            "logged in not"
+            "No data to be found"
 
         ], 400);
     }

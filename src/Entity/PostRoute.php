@@ -28,6 +28,9 @@ class PostRoute
     #[ORM\Column(nullable: true)]
     private ?float $earnings = null;
 
+    #[ORM\ManyToOne(inversedBy: 'postRoutes')]
+    private ?PostOffice $PostOffice = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -89,6 +92,18 @@ class PostRoute
     public function setEarnings(?float $earnings): self
     {
         $this->earnings = $earnings;
+
+        return $this;
+    }
+
+    public function getPostOffice(): ?PostOffice
+    {
+        return $this->PostOffice;
+    }
+
+    public function setPostOffice(?PostOffice $PostOffice): self
+    {
+        $this->PostOffice = $PostOffice;
 
         return $this;
     }

@@ -15,18 +15,14 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'app_dashboard')]
     public function index(Request $request, UserRepository $userRepository, RouteRepository $routeRepository,  JWTTokenService $JWTTokenService): JsonResponse
     {
+        $user = $JWTTokenService->verifyUserToken();
 
-
-
-         if($JWTTokenService->verifyUserToken() != null)
+         if($user == null)
         {
-
-
-
             return $this->json([
+
             ] );
         }
-
 
         return $this->json([
         ], 400);

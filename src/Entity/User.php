@@ -34,7 +34,7 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $apiToken = null;
 
-    #[ORM\Column(length: 255,  nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $license_plate = null;
 
     #[ORM\Column(nullable: true)]
@@ -45,6 +45,15 @@ class User implements PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     private ?bool $is_admin = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $position = null;
+
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    private ?PostOffice $PostOffice = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $PhoneNumber = null;
 
     public function getId(): ?int
     {
@@ -146,13 +155,15 @@ class User implements PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
     public function serialize()
     {
         return [
-            "firstname"=> $this->firstname,
-            "lastname"=> $this->lastname,
-            "email"=> $this->email,
-
+            "firstname" => $this->firstname,
+            "lastname" => $this->lastname,
+            "email" => $this->email,
+            "postCompany" => $this->getPostOffice()?->getId(),
+            "is_admin" => $this->isIsAdmin()
         ];
     }
 
@@ -164,6 +175,42 @@ class User implements PasswordAuthenticatedUserInterface
     public function setIsAdmin(bool $is_admin): self
     {
         $this->is_admin = $is_admin;
+
+        return $this;
+    }
+
+    public function getPosition(): ?string
+    {
+        return $this->position;
+    }
+
+    public function setPosition(string $position): self
+    {
+        $this->position = $position;
+
+        return $this;
+    }
+
+    public function getPostOffice(): ?PostOffice
+    {
+        return $this->PostOffice;
+    }
+
+    public function setPostOffice(?PostOffice $PostOffice): self
+    {
+        $this->PostOffice = $PostOffice;
+
+        return $this;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->PhoneNumber;
+    }
+
+    public function setPhoneNumber(?string $PhoneNumber): self
+    {
+        $this->PhoneNumber = $PhoneNumber;
 
         return $this;
     }

@@ -3,9 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\PostOffice;
-use App\Entity\PostOfficeUser;
+use App\Entity\User;
 use App\Repository\PostOfficeRepository;
 use App\Repository\PostOfficeUserRepository;
+use App\Repository\UserRepository;
 use App\Service\ResponseService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,25 +38,6 @@ class PostOfficeController extends AbstractController
 
     }
 
-    #[Route('/post_office_account', name: 'post_office_account', methods: ['GET'])]
-    public function indexAccount(PostOfficeUserRepository $postOfficeUserRepository): JsonResponse
-    {
-        $postOfficeUsers  = $postOfficeUserRepository->findAll();
-        foreach ($postOfficeUsers as $postOffice) {
-            $data[] = [
-                'id' => $postOffice->getId(),
-                'email' => $postOffice->getEmail(),
-                'firstname' => $postOffice->getFirstname(),
-                'lastname' => $postOffice->getLastname(),
-            ];
-
-        }
-
-        return $this->json([
-            $data
-        ]);
-
-    }
 
     #[Route('/create_post_office', name: 'post_office')]
     public function createPostOffice(Request $request, PostOfficeRepository $postOfficeRepository): JsonResponse
@@ -75,7 +57,6 @@ class PostOfficeController extends AbstractController
             }
 
             if ($valid) {
-
                 $postOffice->setName($data->postOfficeName);
                 $postOffice->setKvk(intval($data->postOfficeKVK));
 
@@ -91,12 +72,15 @@ class PostOfficeController extends AbstractController
     }
 
     #[Route('/create_post_office_account', name: 'post_office_account_create')]
-    public function createPostOfficeAccount(Request $request, PostOfficeUserRepository $postOfficeUserRepository,  UserPasswordHasherInterface $userPasswordHasher ): JsonResponse
+    public function createPostOfficeAccount(Request $request, UserRepository $userRepository, PostOfficeRepository $postOfficeRepository ,UserPasswordHasherInterface $userPasswordHasher ): JsonResponse
     {
         $data = json_decode($request->getContent());
-        $postOfficeUser = new PostOfficeUser();
+        $user = new User();
         $errorMessage = "";
         $valid = true;
+
+
+        //todo add check if person has valid postcompany
 
         if ($data != null) {
 
@@ -120,18 +104,24 @@ class PostOfficeController extends AbstractController
                 $valid = false;
                 $errorMessage = "Vul een telefoonummer in";
             }
+            if($data->postCompany != null)
+            {
+                $postOffice = $postOfficeRepository->find($data->postCompany);
+            }else{
+                $valid = false;
+                $errorMessage = "Geen postbedrijf gevonden";
+            }
 
             if ($valid) {
-
-                $postOfficeUser->setFirstname($data->firstname);
-                $postOfficeUser->setLastname($data->lastname);
-                $postOfficeUser->setEmail($data->email);
-                $postOfficeUser->setPassword($userPasswordHasher->hashPassword($postOfficeUser, $data->password));
-                $postOfficeUser->setPhoneNumber($data->cellphone);
-                $postOfficeUser->setPosition($data->position);
-                $postOfficeUser->setRole("default");
-
-                $postOfficeUserRepository->save($postOfficeUser, true);
+                $user->setFirstname($data->firstname);
+                $user->setLastname($data->lastname);
+                $user->setEmail($data->email);
+                $user->setPassword($userPasswordHasher->hashPassword($user, $data->password));
+                $user->setPhoneNumber($data->cellphone);
+                $user->setPosition($data->position);
+                $user->setIsAdmin(false);
+                $user->setPostOffice($postOffice);
+                $userRepository->save($user, true);
 
 
                 return $this->json([
@@ -140,6 +130,7 @@ class PostOfficeController extends AbstractController
             }
         }
         return $this->json([
+            $errorMessage
         ]);
     }
 

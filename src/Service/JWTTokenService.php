@@ -17,17 +17,19 @@ class JWTTokenService
         $this->userRepository = $userRepository;
     }
 
-    public function createApiToken()
+    public function createApiToken(User $user)
     {
 
-        $length = 10;
+        $length = 55;
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $apiToken = '';
         for ($i = 0; $i < $length; $i++) {
             $apiToken .= $characters[random_int(0, $charactersLength - 1)];
         }
-        return $apiToken;
+        $user->setApiToken($apiToken);
+        $this->userRepository->save($user, true);
+
     }
 
     public function createToken(User $user)
@@ -35,9 +37,7 @@ class JWTTokenService
         if ($user->getApiToken() != null) {
             return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
         } else {
-           $apiToken = $this->createApiToken();
-           $user->setApiToken($apiToken);
-           $this->userRepository->save($user);
+           $this->createApiToken($user);
            return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
         }
     }
@@ -45,7 +45,7 @@ class JWTTokenService
     public function decodeToken(string $token, User $user)
     {
         try {
-            $decodedToken = JWT::decode($token, new Key($user->getApiToken(), 'HS256'));
+           return JWT::decode($token, new Key($user->getApiToken(), 'HS256'));
         } catch (\Exception $e) {
             return null;
         }
@@ -61,7 +61,13 @@ class JWTTokenService
         $header = $this->decodePublic(getallheaders()["X-API-TOKEN"]);
         $apiTokenUser = $this->userRepository->findOneBy(["email" => $header[0]->email]);
         $verifiedUser = $this->decodeToken(getallheaders()["X-API-TOKEN"], $apiTokenUser);
-        return $verifiedUser;
+        if($verifiedUser != null)
+        {
+            return $apiTokenUser;
+        }
+
+        return null;
+
     }
 
 }

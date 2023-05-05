@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\PostRoute;
-use App\Repository\PostRouteRepository;use Symfony\Component\HttpFoundation\Request;
+use App\Service\JWTTokenService;
+use App\Repository\PostRouteRepository;
+use App\Repository\UserRepository;
+use Symfony\Component\HttpFoundation\Request;
 use App\Repository\RouteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,12 +38,23 @@ class PostRoutesController extends AbstractController
     }
 
     #[Route('/create-route', name: 'create_post_routes')]
-    public function Create(Request $request, PostRouteRepository $routeRepository): JsonResponse
+    public function Create(Request $request, JWTTokenService $JWTTokenService ,PostRouteRepository $routeRepository, UserRepository $userRepository): JsonResponse
     {
+
+        $user = $JWTTokenService->verifyUserToken();
+        $postOffice = $user->getPostOffice();
+
+        if($user == null)
+        {
+            return $this->json([
+                'User is not verified'
+            ], 400);
+        }
 
         $data = json_decode($request->getContent());
         $postRoute = new PostRoute();
         $valid = true;
+
         $errormessage = "";
 
         if($data->distance === null)
@@ -70,7 +84,12 @@ class PostRoutesController extends AbstractController
             $valid = false;
             $errormessage = "Opbrengste  zijn niet ingevuld";
         }
+        if($postOffice === null)
+        {
+            $valid = false;
+            $errormessage = "Geen post bedrijf ";
 
+        }
 
         if($valid)
         {
@@ -85,6 +104,11 @@ class PostRoutesController extends AbstractController
             return $this->json([
                 'route is aangemaakt'
             ]);
+        }
+        else{
+            return $this->json([
+                $errormessage
+            ], 400);
         }
 
 
