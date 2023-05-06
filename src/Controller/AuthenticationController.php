@@ -87,24 +87,14 @@ class AuthenticationController extends AbstractController
     #[Route('/verifyToken', name: 'app_verifyToken')]
     public function verifyToken(Request $request, JWTTokenService $JWTTokenService, UserRepository $userRepository): JsonResponse
     {
-        $data = json_decode($request->getContent());
-
-        if ($data != null) {
-            $user = $userRepository->findOneBy(["email" => $data->email]);
-
-            if ($JWTTokenService->decodeToken($data->token, $user)) {
-                return $this->json([
-                    "Logged in "
-                ]);
-            }else{
-                return $this->json([
-                    "Could not decodeToken"
-                ], 400);
-            }
+        $user = $JWTTokenService->verifyUserToken();
+        if ($user == null) {
+            return $this->json([
+                'User is not verified'
+            ], 400);
         }
         return $this->json([
-            "No data to be found"
-
-        ], 400);
+           $user->serialize()
+        ]);
     }
 }

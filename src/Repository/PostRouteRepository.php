@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PostRoute;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,6 +38,16 @@ class PostRouteRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function getRoutesByUser(User $user)
+    {
+        return $this->createQueryBuilder("pr")
+            ->leftJoin("pr.PostOffice","po")
+            ->where("po.id = :postOfficeId")
+            ->setParameter("postOfficeId", $user->getPostOffice())
+            ->getQuery()
+            ->getResult();
     }
 
 //    /**

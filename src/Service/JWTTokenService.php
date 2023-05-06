@@ -20,7 +20,7 @@ class JWTTokenService
     public function createApiToken(User $user)
     {
 
-        $length = 55;
+        $length = 10;
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $apiToken = '';
@@ -37,15 +37,15 @@ class JWTTokenService
         if ($user->getApiToken() != null) {
             return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
         } else {
-           $this->createApiToken($user);
-           return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
+            $this->createApiToken($user);
+            return JWT::encode($user->serialize(), $user->getApiToken(), 'HS256');
         }
     }
 
     public function decodeToken(string $token, User $user)
     {
         try {
-           return JWT::decode($token, new Key($user->getApiToken(), 'HS256'));
+            return JWT::decode($token, new Key($user->getApiToken(), 'HS256'));
         } catch (\Exception $e) {
             return null;
         }
@@ -58,15 +58,16 @@ class JWTTokenService
 
     public function verifyUserToken()
     {
-        $header = $this->decodePublic(getallheaders()["X-API-TOKEN"]);
-        $apiTokenUser = $this->userRepository->findOneBy(["email" => $header[0]->email]);
-        $verifiedUser = $this->decodeToken(getallheaders()["X-API-TOKEN"], $apiTokenUser);
-        if($verifiedUser != null)
-        {
-            return $apiTokenUser;
+        try {
+            $header = $this->decodePublic(getallheaders()["X-API-TOKEN"]);
+            $apiTokenUser = $this->userRepository->findOneBy(["email" => $header->email]);
+            $verifiedUser = $this->decodeToken(getallheaders()["X-API-TOKEN"], $apiTokenUser);
+            if ($verifiedUser != null) {
+                return $apiTokenUser;
+            }
+        } catch (\Exception $e) {
+            return null;
         }
-
-        return null;
 
     }
 

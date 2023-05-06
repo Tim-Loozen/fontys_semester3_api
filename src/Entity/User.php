@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,6 +56,14 @@ class User implements PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $PhoneNumber = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: PostRoute::class)]
+    private Collection $postRoutes;
+
+    public function __construct()
+    {
+        $this->postRoutes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -211,6 +221,36 @@ class User implements PasswordAuthenticatedUserInterface
     public function setPhoneNumber(?string $PhoneNumber): self
     {
         $this->PhoneNumber = $PhoneNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PostRoute>
+     */
+    public function getPostRoutes(): Collection
+    {
+        return $this->postRoutes;
+    }
+
+    public function addPostRoute(PostRoute $postRoute): self
+    {
+        if (!$this->postRoutes->contains($postRoute)) {
+            $this->postRoutes->add($postRoute);
+            $postRoute->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePostRoute(PostRoute $postRoute): self
+    {
+        if ($this->postRoutes->removeElement($postRoute)) {
+            // set the owning side to null (unless already changed)
+            if ($postRoute->getUser() === $this) {
+                $postRoute->setUser(null);
+            }
+        }
 
         return $this;
     }

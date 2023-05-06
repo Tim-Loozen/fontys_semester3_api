@@ -22,6 +22,7 @@ class Route
     #[ORM\Column]
     private ?int $time = null;
 
+
     public function getId(): ?int
     {
         return $this->id;
