@@ -60,9 +60,13 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: PostRoute::class)]
     private Collection $postRoutes;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RouteRequest::class)]
+    private Collection $routeRequests;
+
     public function __construct()
     {
         $this->postRoutes = new ArrayCollection();
+        $this->routeRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -249,6 +253,36 @@ class User implements PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($postRoute->getUser() === $this) {
                 $postRoute->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RouteRequest>
+     */
+    public function getRouteRequests(): Collection
+    {
+        return $this->routeRequests;
+    }
+
+    public function addRouteRequest(RouteRequest $routeRequest): self
+    {
+        if (!$this->routeRequests->contains($routeRequest)) {
+            $this->routeRequests->add($routeRequest);
+            $routeRequest->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRouteRequest(RouteRequest $routeRequest): self
+    {
+        if ($this->routeRequests->removeElement($routeRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($routeRequest->getUser() === $this) {
+                $routeRequest->setUser(null);
             }
         }
 

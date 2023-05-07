@@ -20,32 +20,42 @@ class AuthenticationController extends AbstractController
     {
         $data = json_decode($request->getContent());
         $user = new User();
+        $valid = false;
+        $errorMessage = "";
 
-        if ($data) {
-            if ($data->firstname != null) {
+        if ($data != null) {
+            if ($data->firstname === null) {
+                $valid = false;
+                $errorMessage = 'No firstname';
+            }
+            if ($data->lastname === null) {
+                $valid = false;
+                $errorMessage = 'No firstname';
+            }
+            if ($data->email === null) {
+                $valid = false;
+                $errorMessage = 'No firstname';
+            }
+            if ($data->password === null) {
+                $valid = false;
+                $errorMessage = 'No firstname';
+            }
+
+            if ($valid) {
                 $user->setFirstname($data->firstname);
-            }
-            if ($data->lastname != null) {
                 $user->setLastname($data->lastname);
-            }
-            if ($data->email != null) {
                 $user->setEmail($data->email);
-            }
-            if ($data->password != null) {
                 $user->setPassword($userPasswordHasher->hashPassword($user, $data->password));
+                $user->setIsAdmin(false);
+                $userRepository->save($user, true);
+                $errorMessage = "register_ok";
             }
-
-            $user->setIsAdmin(false);
-            $userRepository->save($user, true);
 
             return $this->json([
-                "OK user has been made"
+                $errorMessage
             ]);
         }
 
-        return $this->json([
-            "No data provided"
-        ]);
 
     }
 

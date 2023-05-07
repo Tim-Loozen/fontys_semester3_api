@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PostRouteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostRouteRepository::class)]
@@ -37,10 +39,14 @@ class PostRoute
     #[ORM\ManyToOne(inversedBy: 'postRoutes')]
     private ?User $user = null;
 
+    #[ORM\OneToMany(mappedBy: 'PostRoute', targetEntity: RouteRequest::class)]
+    private Collection $routeRequests;
+
 
     public function __construct()
     {
         $this->status = "active";
+        $this->routeRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -140,6 +146,36 @@ class PostRoute
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RouteRequest>
+     */
+    public function getRouteRequests(): Collection
+    {
+        return $this->routeRequests;
+    }
+
+    public function addRouteRequest(RouteRequest $routeRequest): self
+    {
+        if (!$this->routeRequests->contains($routeRequest)) {
+            $this->routeRequests->add($routeRequest);
+            $routeRequest->setPostRoute($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRouteRequest(RouteRequest $routeRequest): self
+    {
+        if ($this->routeRequests->removeElement($routeRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($routeRequest->getPostRoute() === $this) {
+                $routeRequest->setPostRoute(null);
+            }
+        }
 
         return $this;
     }

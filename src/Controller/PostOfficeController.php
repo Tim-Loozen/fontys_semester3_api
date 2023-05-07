@@ -45,29 +45,31 @@ class PostOfficeController extends AbstractController
         $data = json_decode($request->getContent());
         $postOffice = new PostOffice();
         $valid = true;
+        $errorMessage = "";
 
         if ($data != null) {
 
             if ($data->postOfficeName === null) {
                 $valid = false;
+                $errorMessage = "";
             }
 
             if ($data->postOfficeKVK === null) {
                 $valid = false;
+                $errorMessage = "";
             }
 
             if ($valid) {
                 $postOffice->setName($data->postOfficeName);
                 $postOffice->setKvk(intval($data->postOfficeKVK));
-
                 $postOfficeRepository->save($postOffice, true);
+                $errorMessage = "postOffice_ok";
 
-                return $this->json([
-                    "Postoffice has been made"
-                ]);
             }
         }
+
         return $this->json([
+            $errorMessage
         ]);
     }
 
@@ -122,11 +124,7 @@ class PostOfficeController extends AbstractController
                 $user->setIsAdmin(false);
                 $user->setPostOffice($postOffice);
                 $userRepository->save($user, true);
-
-
-                return $this->json([
-                    "Account voor het postbedrijf is aangemaakt"
-                ]);
+                $errorMessage = "postCompanyAccount_ok";
             }
         }
         return $this->json([

@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\PostRoute;
+use App\Entity\RouteRequest;
 use App\Entity\User;
+use App\Repository\RouteRequestRepository;
 use App\Service\JWTTokenService;
 use App\Repository\PostRouteRepository;
 use App\Repository\UserRepository;
@@ -73,10 +75,47 @@ class PostRoutesController extends AbstractController
         ];
 
         return $this->json([
-
             $data
-
         ]);
+
+    }
+
+    #[Route('/wanttheroute', name: 'app_post_route_want')]
+    public function RouteRequest(Request $request, RouteRequestRepository $routeRequestRepository, PostRouteRepository $postRouteRepository, JWTTokenService $JWTTokenService): JsonResponse
+    {
+        $user = $JWTTokenService->verifyUserToken();
+        if ($user == null) {
+            return $this->json([
+                'User is not verified'
+            ], 400);
+        }
+
+        $data = json_decode($request->getContent());
+        $routeRequest = new RouteRequest();
+        $errormessage = "";
+        $valid = true;
+
+        if ($data->postRouteId === null) {
+            $errormessage = "route is empty";
+            $valid = false;
+        }
+
+
+        $postRoute = $postRouteRepository->find($data->postRouteId);
+
+
+        if ($valid) {
+            $routeRequest->setPostRoute($postRoute);
+            $routeRequest->setUser($user);
+            $routeRequest->setDescription($data->description);
+            $routeRequestRepository->save($routeRequest, true);
+            $errormessage = "request_ok";
+
+        }
+            return $this->json([
+                $errormessage
+            ]);
+
 
     }
 
@@ -132,18 +171,12 @@ class PostRoutesController extends AbstractController
             $postRoute->setStartpoint($data->startpoint);
             $postRoute->setEndpoint($data->endpoint);
             $postRoute->setPostOffice($user->getPostOffice());
-
             $routeRepository->save($postRoute, true);
-
-            return $this->json([
-                'route is aangemaakt'
-            ]);
-        } else {
-            return $this->json([
-                $errormessage
-            ], 400);
+            $errormessage = "route_ok";
         }
-
+        return $this->json([
+            $errormessage
+        ] );
 
     }
 }
