@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\PostRoute;
 use App\Entity\RouteRequest;
-use App\Entity\User;
 use App\Repository\RouteRequestRepository;
 use App\Service\JWTTokenService;
 use App\Repository\PostRouteRepository;
@@ -112,11 +111,39 @@ class PostRoutesController extends AbstractController
             $errormessage = "request_ok";
 
         }
+        return $this->json([
+            $errormessage
+        ]);
+
+
+    }
+
+    #[Route('/get-requests', name: 'get_post_route_requests')]
+    public function getRouteRequests(Request $request, JWTTokenService $JWTTokenService, RouteRequestRepository $routeRequestRepository): JsonResponse
+    {
+        $user = $JWTTokenService->verifyUserToken();
+
+        if ($user == null) {
             return $this->json([
-                $errormessage
-            ]);
+                'User is not verified'
+            ], 400);
+        }
+
+        $routeRequests = $routeRequestRepository->findAll();
+
+        foreach ($routeRequests as $r) {
+            $data[] = [
+                "requestId" => $r->getId(),
+                "username" => $r->getUser()->getFirstname(),
+                "route" => $r->getPostRoute()->getId(),
+                "description" => $r->getDescription()
+            ];
+        }
 
 
+        return $this->json([
+            $data
+        ]);
     }
 
 
@@ -176,7 +203,7 @@ class PostRoutesController extends AbstractController
         }
         return $this->json([
             $errormessage
-        ] );
+        ]);
 
     }
 }
