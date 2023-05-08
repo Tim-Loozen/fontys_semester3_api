@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\PostRouteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostRouteRepository::class)]
@@ -41,6 +42,12 @@ class PostRoute
 
     #[ORM\OneToMany(mappedBy: 'PostRoute', targetEntity: RouteRequest::class)]
     private Collection $routeRequests;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $hourly_rate = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $date = null;
 
 
     public function __construct()
@@ -176,6 +183,30 @@ class PostRoute
                 $routeRequest->setPostRoute(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getHourlyRate(): ?float
+    {
+        return $this->hourly_rate;
+    }
+
+    public function setHourlyRate(?float $hourly_rate): self
+    {
+        $this->hourly_rate = $hourly_rate;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): self
+    {
+        $this->date = $date;
 
         return $this;
     }

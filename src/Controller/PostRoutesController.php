@@ -131,6 +131,11 @@ class PostRoutesController extends AbstractController
 
         $routeRequests = $routeRequestRepository->findAll();
 
+        if($user->getPostOffice() === null)
+        {
+            $routeRequests = $routeRequestRepository->findBy(array("user_id" => $user));
+        }
+
         foreach ($routeRequests as $r) {
             $data[] = [
                 "requestId" => $r->getId(),

@@ -50,11 +50,11 @@ class AuthenticationController extends AbstractController
                 $userRepository->save($user, true);
                 $errorMessage = "register_ok";
             }
+        }
 
             return $this->json([
                 $errorMessage
             ]);
-        }
 
 
     }
