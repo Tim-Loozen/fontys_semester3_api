@@ -74,7 +74,7 @@ class AuthenticationController extends AbstractController
                         "Admin has logged in",]);
                 }
 
-                if ($userPasswordHasher->isPasswordValid($user, $data->password) && !$user->isIsAdmin()) {
+                if ($userPasswordHasher->isPasswordValid($user, $data->password) && !$user->isIsAdmin() && !$user->getPostOffice() === null) {
                     return $this->json([
                         $JWTTokenService->createToken($user),
                         "User has logged in",
