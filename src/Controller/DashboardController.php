@@ -32,6 +32,7 @@ class DashboardController extends AbstractController
                 "earnings" => $route->getEarnings(),
                 "hourly_rate" => $route->getHourlyRate(),
                 "Minutes" => $route->getTime(),
+                "postOffice" => $route->getPostOffice()->getName(),
                 "Date" =>$route->getDate(),
             ];
         }
