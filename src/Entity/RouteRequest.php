@@ -22,6 +22,9 @@ class RouteRequest
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
+    #[ORM\ManyToOne(inversedBy: 'routeRequests')]
+    private ?postOffice $postOffice = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class RouteRequest
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPostOffice(): ?postOffice
+    {
+        return $this->postOffice;
+    }
+
+    public function setPostOffice(?postOffice $postOffice): self
+    {
+        $this->postOffice = $postOffice;
 
         return $this;
     }

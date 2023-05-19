@@ -69,6 +69,7 @@ class PostRoutesController extends AbstractController
             "startPoint" => $route->getStartpoint(),
             "endPoint" => $route->getEndpoint(),
             "earnings" => $route->getEarnings(),
+            "description" => $route->getDescription(),
             "distance" => $route->getDistance(),
             "time" => $route->getTime(),
         ];
@@ -101,12 +102,13 @@ class PostRoutesController extends AbstractController
 
 
         $postRoute = $postRouteRepository->find($data->postRouteId);
-
+        $postOffice = $postRoute->getPostOffice();
 
         if ($valid) {
             $routeRequest->setPostRoute($postRoute);
             $routeRequest->setUser($user);
             $routeRequest->setDescription($data->description);
+            $routeRequest->setPostOffice($postOffice);
             $routeRequestRepository->save($routeRequest, true);
             $errormessage = "request_ok";
 
@@ -129,11 +131,13 @@ class PostRoutesController extends AbstractController
             ], 400);
         }
 
-        $routeRequests = $routeRequestRepository->findAll();
+        if($user->getPostOffice() != null) {
+            $routeRequests = $routeRequestRepository->findBy(array("postOffice" => $user->getPostOffice()));
+        }
 
         if($user->getPostOffice() === null)
         {
-            $routeRequests = $routeRequestRepository->findBy(array("user_id" => $user));
+            $routeRequests = $routeRequestRepository->findBy(array("user" => $user));
         }
 
         foreach ($routeRequests as $r) {
@@ -193,7 +197,6 @@ class PostRoutesController extends AbstractController
         if ($user->getPostOffice() === null) {
             $valid = false;
             $errormessage = "Geen post bedrijf ";
-
         }
 
         if ($valid) {
@@ -202,6 +205,7 @@ class PostRoutesController extends AbstractController
             $postRoute->setEarnings($data->earnings);
             $postRoute->setStartpoint($data->startpoint);
             $postRoute->setEndpoint($data->endpoint);
+            $postRoute->setDescription($data->description);
             $postRoute->setPostOffice($user->getPostOffice());
             $routeRepository->save($postRoute, true);
             $errormessage = "route_ok";
