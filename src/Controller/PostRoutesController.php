@@ -41,6 +41,7 @@ class PostRoutesController extends AbstractController
                 'distance' => $route->getDistance(),
                 'time' => $route->getTime(),
                 'startpoint' => $route->getStartpoint(),
+                'status' => $route->getStatus(),
                 'endpoint' => $route->getEndpoint(),
                 'earnings' => $route->getEarnings(),
                 'postOffice' => $route->getPostOffice()->getName(),
@@ -131,12 +132,11 @@ class PostRoutesController extends AbstractController
             ], 400);
         }
 
-        if($user->getPostOffice() != null) {
+        if ($user->getPostOffice() != null) {
             $routeRequests = $routeRequestRepository->findBy(array("postOffice" => $user->getPostOffice()));
         }
 
-        if($user->getPostOffice() === null)
-        {
+        if ($user->getPostOffice() === null) {
             $routeRequests = $routeRequestRepository->findBy(array("user" => $user));
         }
 
@@ -144,7 +144,9 @@ class PostRoutesController extends AbstractController
             $data[] = [
                 "requestId" => $r->getId(),
                 "username" => $r->getUser()->getFirstname(),
+                "email" => $r->getUser()->getEmail(),
                 "route" => $r->getPostRoute()->getId(),
+                "RequestStatus" => $r->getStatus() ?? "",
                 "description" => $r->getDescription()
             ];
         }
@@ -212,6 +214,41 @@ class PostRoutesController extends AbstractController
         }
         return $this->json([
             $errormessage
+        ]);
+
+    }
+
+    #[Route('/route-status', name: 'change_route_status')]
+    public function changeRouteStatus(Request $request, JWTTokenService $JWTTokenService, RouteRequestRepository $routeRequestRepository, PostRouteRepository $postRouteRepository): JsonResponse
+    {
+        $user = $JWTTokenService->verifyUserToken();
+        if ($user == null) {
+            return $this->json([
+                'User is not verified'
+            ], 400);
+        }
+
+        $data = json_decode($request->getContent());
+
+        foreach ($data as $value) {
+
+            $routeRequest = $routeRequestRepository->findOneBy(array("id" => $value->requestId));
+            $routeRequest->setStatus($value->RequestStatus);
+            $routeRequestRepository->save($routeRequest, true);
+
+            $errorMessage = "statusChange_ok";
+
+
+            if ($routeRequest->getStatus() != "Niet toegekend") {
+                $route = $routeRequest->getPostRoute()->setStatus($routeRequest->getStatus());
+                $postRouteRepository->save($route, true);
+            }
+
+
+        }
+
+        return $this->json([
+            $errorMessage
         ]);
 
     }
