@@ -63,6 +63,9 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: RouteRequest::class)]
     private Collection $routeRequests;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $MFAKey = null;
+
     public function __construct()
     {
         $this->postRoutes = new ArrayCollection();
@@ -285,6 +288,18 @@ class User implements PasswordAuthenticatedUserInterface
                 $routeRequest->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getMFAKey(): ?string
+    {
+        return $this->MFAKey;
+    }
+
+    public function setMFAKey(?string $MFAKey): self
+    {
+        $this->MFAKey = $MFAKey;
 
         return $this;
     }

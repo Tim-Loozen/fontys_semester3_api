@@ -31,7 +31,6 @@ class PostOfficeController extends AbstractController
             ];
 
         }
-
         return $this->json([
             $data
         ]);
