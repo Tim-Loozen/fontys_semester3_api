@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,25 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/get-users', name: 'app_users')]
+    public function getAllUsers(UserRepository $userRepository): JsonResponse
+    {
+        $users = $userRepository->findAll();
+
+        foreach ($users as $user) {
+            $data[] = [
+
+                'id' => $user->getId(),
+                'Firstname'=> $user->getFirstname(),
+                'Lastname' =>$user->getLastname(),
+                'email' => $user->getEmail(),
+
+            ];
+        }
+        return $this->json([
+            $data
+        ]);
+    }
 
 
 
