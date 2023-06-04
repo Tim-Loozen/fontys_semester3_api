@@ -35,22 +35,39 @@ class PostRoutesController extends AbstractController
             $routes = $routeRepository->findAll();
         }
 
-        foreach ($routes as $route) {
-            $data[] = [
-                'id' => $route->getId(),
-                'distance' => $route->getDistance(),
-                'time' => $route->getTime(),
-                'startpoint' => $route->getStartpoint(),
-                'status' => $route->getStatus(),
-                'endpoint' => $route->getEndpoint(),
-                'earnings' => $route->getEarnings(),
-                'postOffice' => $route->getPostOffice()->getName(),
-            ];
 
+        foreach ($routes as $route) {
+            if($route->getStatus() !== "Done" && $route->getStatus() !== "started") {
+                $data[] = [
+                    'id' => $route->getId(),
+                    'distance' => $route->getDistance(),
+                    'time' => $route->getTime(),
+                    'startpoint' => $route->getStartpoint(),
+                    'status' => $route->getStatus(),
+                    'endpoint' => $route->getEndpoint(),
+                    'earnings' => $route->getEarnings(),
+                    'postOffice' => $route->getPostOffice()->getName(),
+                ];
+            }
+
+            if($route->getStatus() === "Done")
+            {
+                $history[] = [
+                    'id' => $route->getId(),
+                    'distance' => $route->getDistance(),
+                    'time' => $route->getTime(),
+                    'startpoint' => $route->getStartpoint(),
+                    'status' => $route->getStatus(),
+                    'endpoint' => $route->getEndpoint(),
+                    'earnings' => $route->getEarnings(),
+                    'postOffice' => $route->getPostOffice()->getName(),
+                ];
+            }
         }
 
         return $this->json([
-            $data
+            $data,
+            $history
         ]);
     }
 

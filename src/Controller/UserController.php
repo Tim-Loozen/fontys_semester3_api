@@ -42,6 +42,21 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/edit-users/{id}', name: 'app_edit_users')]
+    public function editUser(UserRepository $userRepository): JsonResponse
+    {
+        //todo create function to edit users
+
+    }
+    #[Route('/remove-users/{id}', name: 'app_remove_users')]
+    public function removeUser(UserRepository $userRepository): JsonResponse
+    {
+           $userRepository->remove();
+    }
+
+
+
+
 
 
 }
