@@ -51,7 +51,7 @@ class UserController extends AbstractController
     #[Route('/remove-users/{id}', name: 'app_remove_users')]
     public function removeUser(UserRepository $userRepository): JsonResponse
     {
-           $userRepository->remove();
+
     }
 
 
