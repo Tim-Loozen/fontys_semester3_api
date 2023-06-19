@@ -47,7 +47,15 @@ class UserTest extends KernelTestCase
         $this->assertSame($result, $user->getEmail());
     }
 
+    public function testPasswordCanBeCreated()
+    {
+        $user = new user();
+        $user->setEmail("tst");
 
+        $result = 'tst';
+
+        $this->assertSame($result, $user->getEmail());
+    }
 
 
 
