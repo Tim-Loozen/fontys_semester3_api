@@ -44,7 +44,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/edit-users/{id}', name: 'app_edit_users')]
-    public function editUser(User $user ,UserRepository $userRepository): JsonResponse
+    public function editUser(User $user): JsonResponse
     {
 
         $data = [
