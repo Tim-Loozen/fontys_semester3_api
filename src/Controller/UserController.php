@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
@@ -43,11 +44,46 @@ class UserController extends AbstractController
     }
 
     #[Route('/edit-users/{id}', name: 'app_edit_users')]
-    public function editUser(UserRepository $userRepository): JsonResponse
+    public function editUser(User $user ,UserRepository $userRepository): JsonResponse
     {
-        //todo create function to edit users
+
+        $data = [
+          "firstname" => $user->getFirstname(),
+          "lastname" => $user->getLastname(),
+          "email" => $user->getEmail(),
+          "password" => $user->getPassword(),
+          "cellphone" => $user->getPhoneNumber(),
+
+        ];
+
+        return $this->json([
+            $data
+        ]);
 
     }
+    #[Route('/update-users', name: 'app_update_user')]
+    public function updateUser(Request $request ,UserRepository $userRepository): JsonResponse
+    {
+        $data = json_decode($request->getContent());
+        if($data != null) {
+            $updatedUser = $userRepository->find($data->id);
+            $updatedUser->setFirstname($data->firstname);
+            $updatedUser->setLastname($data->lastname);
+            $updatedUser->setEmail($data->email);
+            $userRepository->save($updatedUser, true);
+            return $this->json([
+                'Userupdate_ok'
+            ]);
+        }
+
+        return $this->json([
+
+        ]);
+
+
+    }
+
+
     #[Route('/remove-users/{id}', name: 'app_remove_users')]
     public function removeUser(UserRepository $userRepository): JsonResponse
     {
