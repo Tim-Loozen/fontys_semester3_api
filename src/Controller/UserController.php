@@ -44,7 +44,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/edit-users/{user}', name: 'app_edit_users')]
+    #[Route('/edit-users/{id}', name: 'app_edit_users')]
     public function editUser(User $user, JWTTokenService $JWTTokenService): JsonResponse
     {
 
