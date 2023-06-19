@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\JWTTokenService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,9 +44,16 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/edit-users/{id}', name: 'app_edit_users')]
-    public function editUser(User $user): JsonResponse
+    #[Route('/edit-users/{user}', name: 'app_edit_users')]
+    public function editUser(User $user, JWTTokenService $JWTTokenService): JsonResponse
     {
+
+        $user = $JWTTokenService->verifyUserToken();
+        if ($user == null) {
+            return $this->json([
+                'User is not verified'
+            ], 400);
+        }
 
         $data = [
           "firstname" => $user->getFirstname(),
